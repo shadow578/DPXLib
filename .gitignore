@@ -4,7 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # auto- generated AssemblyInfo.cs
-DPXTool/AssemblyInfo.cs
+DPXLib/AssemblyInfo.cs
 
 # User-specific files
 *.rsuser

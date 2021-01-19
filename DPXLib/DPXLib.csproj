@@ -2,11 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Refit" Version="5.2.4" />
     <PackageReference Include="Refit.HttpClientFactory" Version="5.2.4" />
   </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="powershell -ExecutionPolicy Unrestricted &quot;$(ProjectDir)\scripts\prebuild.ps1 -projectDir '$(ProjectDir)' -configurationName '$(ConfigurationName)'&quot;" />
+  </Target>
 
 </Project>
