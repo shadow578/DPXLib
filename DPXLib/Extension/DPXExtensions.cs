@@ -12,9 +12,11 @@ namespace DPXLib.Extension
     /// </summary>
     public static class DPXExtensions
     {
+        //TODO: use /job_instances/id/media endpoint as soon as implemented in DPX
         /// <summary>
         /// Get the volsers that were used by this job
         /// Only valid if the job finished
+        /// 
         /// </summary>
         /// <param name="job">the job to get volsers of</param>
         /// <param name="onlyCompleted">only check for volsers in completed jobs</param>
