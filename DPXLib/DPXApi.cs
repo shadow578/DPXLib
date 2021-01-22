@@ -61,6 +61,15 @@ namespace DPXLib
         Task<InstanceLogEntry[]> GetLogEntries([Header("Authorization")] string bearerToken, [AliasAs("id")] long jobInstanceID, long index, long count, string filter);
 
         /// <summary>
+        /// get media volsers from a job instance with the given instance id
+        /// </summary>
+        /// <param name="bearerToken">token from Login function. (Bearer {token})</param>
+        /// <param name="jobInstanceID">job instange to get volsers of</param>
+        /// <returns>a list of all found media volsers for this job instance</returns>
+        [Get("/app/api/job_instances/{id}/media")]
+        Task<string[]> GetJobVolsers([Header("Authorization")] string bearerToken, [AliasAs("id")] long jobInstanceID);
+
+        /// <summary>
         /// Get the status info for a status string (eg. COMPLETED)
         /// </summary>
         /// <param name="statusStr">the status string, parsed from status url</param>

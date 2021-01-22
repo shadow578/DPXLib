@@ -223,6 +223,27 @@ namespace DPXLib
         }
 
         /// <summary>
+        /// get volsers of the job instance with the given id
+        /// </summary>
+        /// <remarks>
+        /// This function uses the /job_instances/id/media endpoint, which seems to be not implemented yet (as of DPX 4.6.1)
+        /// As a workaround, use <see cref="DPXLib.Extension.DPXExtensions.GetVolsersUsed(JobInstance, bool, long)"/> instead.
+        /// </remarks>
+        /// <param name="jobInstanceID">the job instance to get volsers of</param>
+        /// <returns>the list of media volsers entries found</returns>
+        public async Task<string[]> GetJobInstanceVolsersAsync(long jobInstanceID)
+        {
+            //check state
+            ThrowIfInvalidState();
+
+            return await TryAndRetry(async () =>
+            {
+                //get volsers
+                return await dpx.GetJobVolsers(Token, jobInstanceID);
+            });
+        }
+
+        /// <summary>
         /// Get all logs of the job instance with the given id
         /// </summary>
         /// <param name="jobInstanceID">the job instance to get logs of</param>

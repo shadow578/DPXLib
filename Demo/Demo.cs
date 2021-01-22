@@ -54,12 +54,12 @@ namespace DPXTool
             //await DemoLicense();
             //await DemoJobs();
             //await DemoLogs();
-            //await DemoVolsers();
+            await DemoVolsers();
             //await DemoNodes();
             //await DemoBackupSize();
             //await DemoLogsCached();
             //await DemoJobTimings();
-            await DemoUniqueJob();
+            //await DemoUniqueJob();
 
 
             Console.WriteLine("demo end");
@@ -206,12 +206,22 @@ Licensed:");
                 if (job.RunType != JobRunType.BASE)
                     Console.WriteLine("not base job!");
 
-                Console.WriteLine($"Volsers used by job {job.DisplayName}:");
-                string[] volsers = await job.GetVolsersUsed();
-                if (volsers == null)
+                //get volsers using DPXApi function
+                Console.WriteLine($"Volsers used by job {job.DisplayName} (DPXApi):");
+                string[] volsersApi = await job.GetVolsersAsync();
+                if (volsersApi == null || volsersApi.Length <= 0)
                     Console.WriteLine("  none");
                 else
-                    foreach (string volser in volsers)
+                    foreach (string volser in volsersApi)
+                        Console.WriteLine($"  {volser}");
+
+                //get volsers using DPXExtension
+                Console.WriteLine($"Volsers used by job {job.DisplayName} (Extension):");
+                string[] volsersEx = await job.GetVolsersUsed();
+                if (volsersEx == null || volsersEx.Length <= 0)
+                    Console.WriteLine("  none");
+                else
+                    foreach (string volser in volsersEx)
                         Console.WriteLine($"  {volser}");
             }
         }

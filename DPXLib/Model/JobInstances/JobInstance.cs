@@ -202,6 +202,15 @@ namespace DPXLib.Model.JobInstances
         }
 
         /// <summary>
+        /// query media volsers used by this job instance
+        /// </summary>
+        /// <returns>the volsers in this instance</returns>
+        public async Task<string[]> GetVolsersAsync()
+        {
+            return await SourceClient?.GetJobInstanceVolsersAsync(ID);
+        }
+
+        /// <summary>
         /// get the job status without making an api call
         /// </summary>
         /// <returns>the job status</returns>

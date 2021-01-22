@@ -16,8 +16,10 @@ namespace DPXLib.Extension
         /// <summary>
         /// Get the volsers that were used by this job
         /// Only valid if the job finished
-        /// 
         /// </summary>
+        /// <remarks>
+        /// This is a workaround until <see cref="DPXClient.GetJobInstanceVolsersAsync(long)"/> is functional
+        /// </remarks>
         /// <param name="job">the job to get volsers of</param>
         /// <param name="onlyCompleted">only check for volsers in completed jobs</param>
         /// <param name="timeout">timeout to get job volsers, in milliseconds. if the timeout is <= 0, no timeout is used</param>
