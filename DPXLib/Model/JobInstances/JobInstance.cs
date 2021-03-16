@@ -183,7 +183,7 @@ namespace DPXLib.Model.JobInstances
                 // check if logs are already cached
                 // if not, query from source client
                 if (CachedJobLogs == null || CachedJobLogs.Length <= 0)
-                    CachedJobLogs = await SourceClient?.GetAllJobInstanceLogsAsync(ID, 500, timeout, filters);
+                    CachedJobLogs = await SourceClient?.GetAllJobInstanceLogsAsync(ID, 500, timeout, false, filters);
 
                 return CachedJobLogs;
             }

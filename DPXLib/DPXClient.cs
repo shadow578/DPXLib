@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DPXLib
@@ -38,6 +39,12 @@ namespace DPXLib
         /// the username of the user logged in currently
         /// </summary>
         public string LoggedInUser { get; set; }
+
+        /// <summary>
+        /// the directory from which offline logs can be loaded.
+        /// If null, offline mirror loading is disabled.
+        /// </summary>
+        public string OfflineLogsMirrorsDirectory { get; set; } = null;
 
         /// <summary>
         /// Dpx api instance using ReFit
@@ -205,6 +212,7 @@ namespace DPXLib
         /// <param name="count">how many entries to get</param>
         /// <param name="filters">filters to apply to the logs. WARNING: this is more inofficial functionality</param>
         /// <returns>the list of log entries found</returns>
+        [Obsolete("Try to use GetAllJobInstanceLogsAsync, as it can use local logs mirror instead of having to query every time")]
         public async Task<InstanceLogEntry[]> GetJobInstanceLogsAsync(long jobInstanceID, long startIndex = 0, long count = 500, params FilterItem[] filters)
         {
             //check state
@@ -244,17 +252,31 @@ namespace DPXLib
         }
 
         /// <summary>
-        /// Get all logs of the job instance with the given id
+        /// Get all logs of the job instance with the given id.
+        /// If enabled and found, logs are loaded from the offline logs mirror instead of the DPX api
+        /// 
         /// </summary>
         /// <param name="jobInstanceID">the job instance to get logs of</param>
         /// <param name="batchSize">how many logs to load at once</param>
         /// <param name="timeout">timeout to get job logs, in milliseconds. if the timeout is <= 0, no timeout is used</param>
+        /// <param name="requireQuery">if true, the logs are not attempted to be loaded from local (offline) mirror</param>
         /// <param name="filters">filters to apply to the logs. WARNING: this is more inofficial functionality</param>
         /// <returns>the list of all log entries found</returns>
-        public async Task<InstanceLogEntry[]> GetAllJobInstanceLogsAsync(long jobInstanceID, long batchSize = 500, long timeout = -1, params FilterItem[] filters)
+        public async Task<InstanceLogEntry[]> GetAllJobInstanceLogsAsync(long jobInstanceID, long batchSize = 500, long timeout = -1, bool requireQuery = false, params FilterItem[] filters)
         {
             //check state
             ThrowIfInvalidState();
+
+            //try to load from offline mirror
+            if (!requireQuery)
+            {
+                InstanceLogEntry[] mirrorLogs = TryLoadFromOfflineMirror(jobInstanceID);
+                if (mirrorLogs != null && mirrorLogs.Length > 0)
+                {
+                    Console.Write(" [mirror] ");
+                    return mirrorLogs;
+                }
+            }
 
             //prepare stopwatch for timeout
             Stopwatch timeoutWatch = new Stopwatch();
@@ -367,6 +389,177 @@ namespace DPXLib
 
                 return nodes;
             });
+        }
+
+        /// <summary>
+        /// try to load the logs for the given job instance id from the offline mirror
+        /// </summary>
+        /// <param name="jobInstanceID">the id to load logs of</param>
+        /// <returns>the list of logs loaded, or null if failed</returns>
+        InstanceLogEntry[] TryLoadFromOfflineMirror(long jobInstanceID)
+        {
+            // check we have a existing offline mirror directory
+            if (string.IsNullOrWhiteSpace(OfflineLogsMirrorsDirectory) || !Directory.Exists(OfflineLogsMirrorsDirectory))
+                return null;
+
+            // create filename of the log file (id, in hex + .log)
+            string logFileName = $"{jobInstanceID:X}.log";
+
+            // check if the file exists
+            string logFilePath = Path.Combine(OfflineLogsMirrorsDirectory, logFileName);
+            if (!File.Exists(logFilePath))
+                return null;
+
+            // read the file, line by line, and parse log entries
+            List<InstanceLogEntry> logs = new List<InstanceLogEntry>();
+            using (TextReader reader = File.OpenText(logFilePath))
+            {
+                string ln;
+                while ((ln = reader.ReadLine()) != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(ln))
+                    {
+                        InstanceLogEntry log = ParseLogEntry(ln);
+                        if (log != null)
+                            logs.Add(log);
+                    }
+                }
+            }
+
+            // return logs, as array
+            return logs.ToArray();
+        }
+
+        /// <summary>
+        /// parse a log entry from a string in a mirrored logs file 
+        /// </summary>
+        /// <param name="offlineMirrorLine">the line from the log file</param>
+        /// <returns>the created log entry, or null if failed</returns>
+        InstanceLogEntry ParseLogEntry(string offlineMirrorLine)
+        {
+            //1 = Source Ip
+            //2 = Module
+            //3 = Time, Weekday
+            //4 = Time, Month
+            //5 = Time, Day of Month
+            //6 = Time, Time String
+            //7 = Time, Year
+            //8 = Message Code
+            //9 = Message
+            const string PATTERN_MESSAGE = @"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) (\w+) ((?:Mon)|(?:Tue)|(?:Wed)|(?:Thu)|(?:Fri)|(?:Sat)|(?:Sun)) ((?:Jan)|(?:Feb)|(?:Mar)|(?:Apr)|(?:May)|(?:Jun)|(?:Jul)|(?:Aug)|(?:Sep)|(?:Oct)|(?:Nov)|(?:Dec)|) (\d{1,2}) (\d{1,2}:\d{1,2}:\d{1,2}) (\d{4}) ([\w]+) (.+)";
+
+            //1 = hour
+            //2 = minute
+            //3 = second
+            const string PATTER_TIME = @"(\d{1,2}):(\d{1,2}):(\d{1,2})";
+
+            // parse using regex
+            Match mLog = Regex.Match(offlineMirrorLine, PATTERN_MESSAGE);
+
+            // ensure this is a match
+            if (!mLog.Success)
+                return null;
+
+            // get capture groups
+            string sourceIp = mLog.Groups[1].Value;
+            string module = mLog.Groups[2].Value;
+            //string timeWeekday = m.Groups[3].Value;
+            string timeMonthStr = mLog.Groups[4].Value;
+            string timeDayOfMonthStr = mLog.Groups[5].Value;
+            string timeTimeStr = mLog.Groups[6].Value;
+            string timeYearStr = mLog.Groups[7].Value;
+            string messageCode = mLog.Groups[8].Value;
+            string message = mLog.Groups[9].Value;
+
+            // parse time string into hour, minute, and second. abort on failure
+            Match mTime = Regex.Match(timeTimeStr, PATTER_TIME);
+
+            // abort on fail
+            if (!mTime.Success)
+                return null;
+
+            // get capture groups
+            string timeHourStr = mTime.Groups[1].Value;
+            string timeMinuteStr = mTime.Groups[2].Value;
+            string timeSecondStr = mTime.Groups[3].Value;
+
+            // parse hour as number, abort on failure
+            if (!int.TryParse(timeHourStr, out int hour))
+                return null;
+
+            // parse minute as number, abort on failure
+            if (!int.TryParse(timeMinuteStr, out int minute))
+                return null;
+
+            // parse second as number, abort on failure
+            if (!int.TryParse(timeSecondStr, out int second))
+                return null;
+
+            // parse year as number, abort on failure
+            if (!int.TryParse(timeYearStr, out int year))
+                return null;
+
+            // parse month as number, abort on failure
+            int month;
+            switch (timeMonthStr.ToLower())
+            {
+                case "jan":
+                    month = 1;
+                    break;
+                case "feb":
+                    month = 2;
+                    break;
+                case "mar":
+                    month = 3;
+                    break;
+                case "apr":
+                    month = 4;
+                    break;
+                case "may":
+                    month = 5;
+                    break;
+                case "jun":
+                    month = 6;
+                    break;
+                case "jul":
+                    month = 7;
+                    break;
+                case "aug":
+                    month = 8;
+                    break;
+                case "sep":
+                    month = 9;
+                    break;
+                case "oct":
+                    month = 10;
+                    break;
+                case "nov":
+                    month = 11;
+                    break;
+                case "dec":
+                    month = 12;
+                    break;
+                default:
+                    return null;
+            }
+
+            // parse day as number, abort on failure
+            if (!int.TryParse(timeDayOfMonthStr, out int day))
+                return null;
+
+            // build the date time object
+            DateTime time = new DateTime(year, month, day, hour, minute, second);
+
+            // build and return the log entry
+            return new InstanceLogEntry
+            {
+                SourceClient = this,
+                SourceIP = sourceIp,
+                Module = module,
+                Time = time,
+                MessageCode = messageCode,
+                Message = message
+            };
         }
 
         /// <summary>
