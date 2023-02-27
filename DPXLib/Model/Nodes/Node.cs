@@ -97,12 +97,6 @@ namespace DPXLib.Model.Nodes
         public DateTime CreationTime { get; set; }
 
         /// <summary>
-        ///  features supported by this node
-        /// </summary>
-        [JsonProperty("node_feature_flags")]
-        public NodeFeatureFlags[] FeatureFlags { get; set; }
-
-        /// <summary>
         /// Get the node group instance this node is a part of
         /// </summary>
         /// <returns>the node group, or null if not found</returns>
