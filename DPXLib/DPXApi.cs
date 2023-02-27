@@ -27,7 +27,7 @@ namespace DPXLib
         /// </summary>
         /// <param name="bearerToken">token from Login function. (Bearer {token})</param>
         /// <returns>license information response</returns>
-        [Get("/app/api/license")]
+        [Get("/app/api/license?source_system=DPX_GEN_1")]
         Task<LicenseResponse> GetLicense([Header("Authorization")] string bearerToken);
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace DPXLib
         /// <param name="bearerToken">token from Login function. (Bearer {token})</param>
         /// <param name="jobFilter">filters for the job instances, serialized array of <see cref="FilterItem"/></param>
         /// <returns>a list of all found job instances</returns>
-        [Get("/app/api/job_instances")]
+        [Get("/app/api/job_instances?source_system=DPX_GEN_1")]
         Task<JobInstance[]> GetJobInstances([Header("Authorization")] string bearerToken, [AliasAs("filter")] string jobFilter);
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace DPXLib
         /// <param name="bearerToken">token from Login function. (Bearer {token})</param>
         /// <param name="jobInstanceID">job instange to get</param>
         /// <returns>a list of all found job instances</returns>
-        [Get("/app/api/job_instances/{id}")]
+        [Get("/app/api/job_instances/{id}?source_system=DPX_GEN_1")]
         Task<JobInstance> GetJobInstance([Header("Authorization")] string bearerToken, [AliasAs("id")] long jobInstanceID);
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace DPXLib
         /// <param name="count">how many log entries to get</param>
         /// <param name="filter">filters to apply to the log entries, serialized array of <see cref="FilterItem"/>. WARNING: this isn't really official api</param>
         /// <returns>a list of all found log entries for this job instance</returns>
-        [Get("/app/api/job_instances/{id}/log")]
+        [Get("/app/api/job_instances/{id}/log?source_system=DPX_GEN_1")]
         Task<InstanceLogEntry[]> GetLogEntries([Header("Authorization")] string bearerToken, [AliasAs("id")] long jobInstanceID, long index, long count, string filter);
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace DPXLib
         /// <param name="bearerToken">token from Login function. (Bearer {token})</param>
         /// <param name="jobInstanceID">job instange to get volsers of</param>
         /// <returns>a list of all found media volsers for this job instance</returns>
-        [Get("/app/api/job_instances/{id}/media")]
+        [Get("/app/api/job_instances/{id}/media?source_system=DPX_GEN_1")]
         Task<string[]> GetJobVolsers([Header("Authorization")] string bearerToken, [AliasAs("id")] long jobInstanceID);
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace DPXLib
         /// </summary>
         /// <param name="statusStr">the status string, parsed from status url</param>
         /// <returns>the status info</returns>
-        [Get("/app/api/job_instance_statuses/{status}")]
+        [Get("/app/api/job_instance_statuses/{status}?source_system=DPX_GEN_1")]
         Task<JobStatusInfo> GetStatusInfo([AliasAs("status")] string statusStr);
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace DPXLib
         /// <param name="bearerToken">token from Login function. (Bearer {token})</param>
         /// <param name="nodeGroup">the name of the node group</param>
         /// <returns>the node group</returns>
-        [Get("/app/api/node_groups/{nodeGroup}")]
+        [Get("/app/api/node_groups/{nodeGroup}?source_system=DPX_GEN_1")]
         Task<NodeGroup> GetNodeGroup([Header("Authorization")] string bearerToken, string nodeGroup);
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace DPXLib
         /// </summary>
         /// <param name="bearerToken">token from Login function. (Bearer {token})</param>
         /// <returns>a list of node groups</returns>
-        [Get("/app/api/node_groups")]
+        [Get("/app/api/node_groups?source_system=DPX_GEN_1")]
         Task<NodeGroup[]> GetNodeGroups([Header("Authorization")] string bearerToken );
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace DPXLib
         /// <param name="groupNameFilter">filter nodes by node group name</param>
         /// <param name="typeFilter">filter nodes by type</param>
         /// <returns>a list of all matching nodes</returns>
-        [Get("/app/api/nodes")]
+        [Get("/app/api/nodes?source_system=DPX_GEN_1")]
         Task<Node[]> GetNodes([Header("Authorization")] string bearerToken, [AliasAs("node_group_name")] string groupNameFilter, [AliasAs("node_type")] string typeFilter);
     }
 }
