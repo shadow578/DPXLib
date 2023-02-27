@@ -42,8 +42,13 @@ namespace DPXLib.Model.JobInstances
         /// instance type grouping of this job (BLOCK, NDMP, FILE, ...)
         /// </summary>
         [JsonProperty("job_instance_type_grouping")]
-        [JsonConverter(typeof(NullableStringEnumConverter))]
-        public JobType? JobType { get; set; }
+        public string JobType { get; set; }
+
+        /// <summary>
+        /// job instance type (BACKUP_NDMP_DIFR, BACKUP_NDMP_BASE, ...)
+        /// </summary>
+        [JsonProperty("job_instance_type")]
+        public string JobInstanceType { get; set; }
 
         /// <summary>
         /// how long this job will be retained, in days
@@ -112,13 +117,6 @@ namespace DPXLib.Model.JobInstances
         /// </summary>
         [JsonProperty("job_instance_id")]
         public long ID { get; set; }
-
-        /// <summary>
-        /// instance type of this job
-        /// </summary>
-        [JsonProperty("job_instance_type")]
-        [Obsolete("Unknown Usage")]
-        public string InstanceType { get; set; }
 
         /// <summary>
         /// job_instance_command_name

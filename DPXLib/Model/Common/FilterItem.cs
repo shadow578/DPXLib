@@ -114,26 +114,6 @@ namespace DPXLib.Model.Common
         }
 
         /// <summary>
-        /// creates a filter that filters for jobs of the given type, setting job_instance_type_grouping
-        /// </summary>
-        /// <param name="type">the type to filter</param>
-        /// <returns>a filter item</returns>
-        public static FilterItem JobType(params JobType[] type)
-        {
-            List<string> typeStr = new List<string>();
-            foreach (JobType t in type)
-                if (!typeStr.Contains(t.ToString()))
-                    typeStr.Add(t.ToString());
-
-            return new FilterItem
-            {
-                Target = "job_instance_type_grouping",
-                Operation = typeStr.Count > 1 ? "in" : "=",
-                Value = typeStr.ToArray()
-            };
-        }
-
-        /// <summary>
         /// creates a filter that filters for jobs with the given job status, setting job_instance_status_name
         /// </summary>
         /// <param name="status">the name to filter</param>
