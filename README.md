@@ -5,7 +5,7 @@ Because of this, it's possible that there are functions not implemented, or impl
 
 ## Compatibility
 Compatibility is __only__ tested with the latest version i have access to. <br>
-This currently is: __4.6.1__
+This currently is: __4.9.0__
 <br>
 <br>
 DPXLib may be compatible with other versions of DPX, tho that is not something i'll test.<br>
